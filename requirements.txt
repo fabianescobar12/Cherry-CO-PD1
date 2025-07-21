@@ -1,0 +1,4 @@
+ultralytics
+torch
+pandas
+opencv-python-headless
