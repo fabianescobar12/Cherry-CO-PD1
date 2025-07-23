@@ -1,36 +1,33 @@
-# Modelo de reconocimiento y segmentación de cerezas con yolo-v11 y virtualización en clúster hpc, usando el dataset público Cherry CO
+# Modelo de reconocimiento y segmentación de cerezas con yolo-v11 y virtualización y paralelización en clúster hpc, usando el dataset público Cherry CO
 
 # Cherry‑Maturity YOLOv11
 
-Detecta y clasifica el grado de madurez de cerezas con **YOLOv11** usando un contenedor **Singularity/Apptainer** para máxima portabilidad.
+Detecta y clasifica el grado de madurez de cerezas con **YOLOv11** usando un contenedor **Singularity/Apptainer** para portabilidad.
 
 ---
 
 ## 🗂️ Estructura del repo
 
 ```text
-cherry-maturity-yolo/
+Cherry-CO-PD1/
 │
-├── README.md               ← este archivo
-├── LICENSE
-├── .gitignore              ← ignora data/, outputs/, *.sif, __pycache__ …
+├── README.md             
 │
 ├── singularity/
-│   ├── yolo11.def          ← receta del contenedor
-│   └── build_container.sh  ← wrapper: construye yolo11.sif
+│   ├── yolov11_container_definition_file.def          ← construcción del container con todas las dependencias
+│   └── build_container.sh                             ← construye yolo11.sif
 │
 ├── configs/
-│   └── cherries_maturity.yaml
+│   └── cherries_maturity.yaml                         ← archivo de configuracion de datos yaml
 │
-├── requirements.txt        ← dependencias Python (cu121)
+├── requirements.txt                                   ← dependencias Python
 │
 ├── scripts/
-│   ├── train.py            ← script principal de entrenamiento
-│   ├── submit_slurm.sh     ← plantilla para Slurm
-│   └── download_dataset.sh ← descarga y prepara el dataset
+│   ├── train_secuencial.py                            ← script principal de entrenamiento
+│   ├── train_paralelizado.py
+│   ├── submit_slurm.sh                                ← directivas para slurm
+│   └── download_dataset.sh                            ← descarga y prepara el dataset
 │
-├── src/                    ← (utilidades opcionales)
-│   └── utils.py
 │
 ├── data/                   ← vacío; se llena con el dataset (no se versiona)
 └── outputs/                ← modelos, logs, métricas (no se versiona)
