@@ -1,132 +1,164 @@
-# Modelo de reconocimiento y segmentación de cerezas con yolo-v11 y virtualización y paralelización en clúster hpc, usando el dataset público Cherry CO
+# Proyecto: Detección de Madurez de Cerezas con **YOLOv11**
 
-# Cherry‑Maturity YOLOv11
-
-Detecta y clasifica el grado de madurez de cerezas con **YOLOv11** usando un contenedor **Singularity/Apptainer** para portabilidad.
+Este repositorio **utiliza el conjunto de datos público Cherry CO Dataset** (Cossio‑Montefinale *et al.*, 2024) para entrenar y validar un detector de madurez de cerezas basado en **Ultralytics YOLOv11**. Incluye los scripts de descarga del dataset, la definición de contenedor Singularity/Apptainer y ejemplos de ejecución tanto local como en un clúster **SLURM**.
 
 ---
 
-## 🗂️ Estructura del repo
+## Tabla de contenidos
 
-```text
-Cherry-CO-PD1/
-│
-├── README.md             
-│
-├── singularity/
-│   ├── yolov11_container_definition_file.def          ← construcción del container con todas las dependencias
-│   └── build_container.sh                             ← construye yolo11.sif
-│
-├── configs/
-│   └── cherries_maturity.yaml                         ← archivo de configuracion de datos yaml
-│
-├── requirements.txt                                   ← dependencias Python
-│
-├── scripts/
-│   ├── train_secuencial.py                            ← script principal de entrenamiento
-│   ├── train_paralelizado.py
-│   ├── submit_slurm.sh                                ← directivas para slurm
-│   └── download_dataset.sh                            ← descarga y prepara el dataset
-│
-│
-├── data/                   ← vacío; se llena con el dataset (no se versiona)
-└── outputs/                ← modelos, logs, métricas (no se versiona)
+1. [Estructura del repositorio](#estructura-del-repositorio)
+2. [Requisitos](#requisitos)
+3. [Instalación](#instalación)
+4. [Requisitos para ejecutar scripts shell](#requisitos-para-ejecutar-scripts-shell)
+5. [Descarga del dataset](#descarga-del-dataset)
+6. [Construcción del contenedor](#construcción-del-contenedor)
+7. [Entrenamiento](#entrenamiento)
+   - [Entrenamiento secuencial](#entrenamiento-secuencial)
+   - [Entrenamiento paralelo](#entrenamiento-paralelo)
+8. [Ejecución en clúster SLURM](#ejecución-en-clúster-slurm)
+9. [Salida de resultados](#salida-de-resultados)
+10. [Personalización](#personalización)
+11. [Créditos](#créditos)
+
+---
+
+## Estructura del repositorio
+
+```
+configs/
+ └─ cherries_maturity.yaml       # Configuración del dataset
+scripts/
+ ├─ download_dataset.sh          # Descarga y descompresión del dataset
+ ├─ submit_slurm.sh              # Ejemplo de envío de job a SLURM
+ ├─ train_secuencial.py          # Entrenamiento en un solo GPU
+ └─ train_paralelizado.py        # Entrenamiento distribuido (DataParallel)
+singularity/
+ ├─ build_container.sh           # Construye la imagen SIF
+ ├─ yolov11_container_definition.def  # Receta del contenedor
+ └─ yolov11_container.sif        # Imagen generada (no versionada)
 ```
 
 ---
 
-## ⚙️ Requisitos
+## Requisitos
 
-| Recurso                     | Versión mínima                                         |
-| --------------------------- | ------------------------------------------------------ |
-| **Singularity / Apptainer** | 3.11                                                   |
-| **GPU driver**              |  NVIDIA ≥ 546.xx (CUDA 12.8)                           |
-| **Almacenamiento**          |  ≈ 30 GB (dataset + modelos)                           |
-| **RAM**                     |  ≥ 32 GB                                               |
-| **Python host**             |  3.10 (para scripts auxiliares, no para entrenamiento) |
+| Herramienta               | Versión mínima | Comentario                                     |
+| ------------------------- | -------------- | ---------------------------------------------- |
+| **Git**                   | 2.x            | Para clonar el repositorio                     |
+| **GPU NVIDIA**            | CUDA 12.6+     | Probado con runtime 12.6.3                     |
+| **Apptainer/Singularity** | `1.3.6`        | Verificado con `apptainer version 1.3.6-1.el9` |
+| **SLURM**                 | (opcional)     | Para ejecución batch en cluster                |
 
-> **Nota:** El contenedor incluye PyTorch 2.4.1 + cu121. Un driver 12.8 ejecuta binarios cu121 sin problemas.
+> **Nota**: Todo el software de Python (Ultralytics, PyTorch, etc.) se instala automáticamente dentro del contenedor.
 
 ---
 
-## 🚀 Uso rápido
+## Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/fabianescobar12/Cherry-CO-PD1.git
+   cd Cherry-CO-PD1
+   ```
+
+---
+
+## Requisitos para ejecutar scripts shell
+
+Antes de ejecutar los scripts, es necesario otorgar permisos de ejecución al archivo shell (.sh). Para ello, se debe ejecutar los siguientes comandos desde la raíz del repositorio:
+   - ```chmod +x scripts/download_dataset.sh```
+   - ```chmod +x scripts/submit_slurm.sh```
+   - ```chmod +x singularity/build_container.sh```
+
+## Descarga del dataset
+
+Ejecute el script de descarga que utiliza `gdown` para obtener los datos desde Google Drive:
 
 ```bash
-# 1) Clona el repo
-$ git clone git@github.com:garcesfruit-data/cherry-maturity-yolo.git
-$ cd cherry-maturity-yolo
-
-# 2) Construye el contenedor (≈ 15 min)
-$ ./singularity/build_container.sh      # genera singularity/yolo11.sif
-
-# 3) Descarga el dataset (~8 GB)
-$ ./scripts/download_dataset.sh
-
-# 4) Entrena en local (3 GPUs)
-$ singularity exec --nv singularity/yolo11.sif \
-      python3 scripts/train.py \
-      --config configs/cherries_maturity.yaml
-
-# 5) Entrena en Slurm
-$ sbatch scripts/submit_slurm.sh
+bash scripts/download_dataset.sh
 ```
 
-### Parámetros clave (`train.py`)
+Se generará la carpeta `data/` con las particiones `train/`, `val/` y `test/`.
 
-```text
---epochs          # default: 120
---img-sizes       # lista de resoluciones, ej. 1024 640
---batches         # lista de tamaños de batch
---device          # 'auto', '0,1,2', etc.
---project         # carpeta raíz de salidas
-```
+---
 
-Ejemplo:
+### Referencia del Dataset
+
+> L. Cossio‑Montefinale, J. Ruiz‑del‑Solar y R. Verschae, "Cherry CO Dataset: A Dataset for Cherry Detection, Segmentation and Maturity Recognition," *IEEE Robotics and Automation Letters*, vol. 9, n.º 6, pp. 5552‑5558, junio 2024. doi: 10.1109/LRA.2024.3393214
+
+---
+
+## Construcción del contenedor
+
+Para garantizar la reproducibilidad, utilice **Apptainer/Singularity**:
 
 ```bash
-singularity exec --nv singularity/yolo11.sif \
-  python3 scripts/train.py \
-  --config configs/cherries_maturity.yaml \
-  --epochs 150 --img-sizes 1280 1024 \
-  --batches 64 32 16 --device 0,1
+bash singularity/build_container.sh
+```
+
+Esto creará la imagen `singularity/yolov11_container.sif` basada en `nvidia/cuda:12.6.3-runtime-ubuntu24.04` e instalará todas las dependencias listadas en `requirements.txt` dentro de un entorno virtual ubicado en `/opt/venv`.
+
+> Si su sistema no soporta `singularity build`, puede compilar en otro host y transferir la imagen SIF resultante.
+
+---
+
+## Entrenamiento
+
+Previo al entrenamiento modifique `configs/cherries_maturity.yaml`, en el apartado `path`, donde deberá ingresar la ruta correspondiente a la carpeta del dataset.
+
+Las ejecuciones sin utilizar slurm para la solicitud de recursos deben ejecutarse dentro del contenedor y en un nodo con acceso a GPU (de lo contrario, si estamos en un nodo sin GPU podemos llamarlo mediante la ejecución con slurm, como se explica más adelante), como sigue:
+
+### 1. Entrenamiento secuencial (sin slurm)
+
+Utiliza un solo GPU y recorre distintas combinaciones de tamaño de imagen y batch.
+
+```bash
+singularity exec --nv singularity/yolov11_container.sif \
+    python3 scripts/train_secuencial.py
+```
+
+### 2. Entrenamiento paralelo (sin slurm)
+
+Aprovecha varios GPUs (DataParallel). Configure la variable `DEVICES` en `scripts/train_paralelizado.py` según los índices visibles.
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2 \
+  singularity exec --nv singularity/yolov11_container.sif \
+  python3 scripts/train_paralelizado.py
 ```
 
 ---
 
-## 📂 Estructura de salidas
+## Ejecución en clúster con SLURM
 
-```
-outputs/
-└── cherry_yolo11_model/
-    ├── sz1024_bs64/        ← run_name
-    │   ├── model.pt        ← modelo final
-    │   └── metrics.csv     ← métricas por época
-    ├── sz1024_bs32/ …
-    └── training_summary.csv
-```
+1. **Ajuste** `scripts/submit_slurm.sh`:
+   - `--nodelist`, `--cpus-per-task`, `--gres=gpu:X`, etc.
+   - `--mail-user` y otros metadatos.
+2. **Envío del trabajo**
+   ```bash
+   sbatch scripts/submit_slurm.sh
+   ```
 
----
-
-## 🛠️ Solución de problemas
-
-| Síntoma                                             | Causa probable                       | Fix                                                                             |
-| --------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------- |
-| `CUDA driver too old`                               | Driver < 546.xx                      | Actualiza el driver o usa nodo compatible                                       |
-| `No module named ultralytics` dentro del contenedor | Falló la instalación de requirements | Re‑construye el `.sif` o instala manualmente `pip install ultralytics==8.3.154` |
-| GPU 0 out‑of‑memory                                 | **batch/img‑size** muy altos         | Reduce `--batches` o usa más GPUs                                               |
+El script invoca al contenedor y ejecuta `train_secuencial.py` o `train_paralelizado.py` según tus necesidades, logrando una buena práctica utilizando slurm para solicitar recursos al clúster.
 
 ---
 
-## 📝 Licencia
+## Salida de resultados
 
-Código bajo **MIT**. El dataset se distribuye sólo para investigación interna; revisa su licencia antes de redistribuir.
+- Modelos entrenados: carpeta `cherry_yolo11_model/<run_name>/model_<batch>_<img_size>.pt`.
+- Métricas resumidas: `configs/training_summary.csv` con columnas `datetime`, `batch`, `img_size`, `memoria_gb_vram`, `tiempo_entrenamiento` y `mAP50`.
 
 ---
 
-## 🤝 Créditos
+## Personalización
+- **Hiperparámetros**: Edite `img_sizes`, `batch_map` y `epochs` en los scripts de entrenamiento.
+- **SLURM**: Cambie los parámetros SBATCH según los recursos de su clúster.
 
-Desarrollo original: **Fabián Escobar** & **Camilo Aliste** (2025). Inspirado en Ultralytics YOLO.
+---
 
-¡Feliz cosecha de cerezas 🍒!
+## Créditos
+
+Desarrollado por Fabián Escobar y Camilo Aliste. Basado en **Ultralytics YOLOv11**.
+
 
 
