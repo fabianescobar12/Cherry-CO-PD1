@@ -75,7 +75,7 @@ def main() -> None:
             })
 
     pd.DataFrame(results_log).to_csv(SUMMARY_FILE, index=False)
-    print(f"\n Resumen guardado en: {SUMMARY_FILE}")
+    print(f"\n Resumen guardado con éxito en: {SUMMARY_FILE}")
 
 if __name__ == "__main__":
     main()

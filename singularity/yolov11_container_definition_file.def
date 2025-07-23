@@ -3,7 +3,7 @@ From: nvidia/cuda:12.6.3-runtime-ubuntu24.04
 
 %labels
     Author Fabián Escobar, Camilo Aliste
-    Version 1.6.3
+    Version 1.6.4
 
 %files
     requirements.txt requirements.txt

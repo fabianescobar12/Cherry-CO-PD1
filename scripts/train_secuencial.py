@@ -66,7 +66,7 @@ def train_loop():
             print(f"✔️  [{run_name}] guardado en {model_file.relative_to(REPO_DIR)}")
 
     pd.DataFrame(log).to_csv(SUMMARY_FILE, index=False)
-    print(f"\n📄 Resumen guardado en: {SUMMARY_FILE.relative_to(REPO_DIR)}")
+    print(f"\n📄 Resumen guardado con éxito en: {SUMMARY_FILE.relative_to(REPO_DIR)}")
 
 if __name__ == "__main__":
     train_loop()

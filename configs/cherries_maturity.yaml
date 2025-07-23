@@ -2,7 +2,7 @@
 # Debes ingresar la ruta del dataset, por ejemplo adjunto donde lo hice yo
 # para obtener la ruta tal cual usar en la terminal: realpath nombre_carpeta
 
-path: /mnt/beegfs/home/fescobar/hola/holaaaaa/data        #<- tu ruta obtenida con realpath nombre_carpeta
+path: /mnt/beegfs/home/fescobar/hola/holaaaaa/data        # <- tu ruta obtenida con realpath nombre_carpeta
 train: train/images
 val:   val/images
 test:  test/images

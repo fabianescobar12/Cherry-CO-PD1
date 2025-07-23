@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DATA_DIR="$ROOT_DIR/data"
 mkdir -p "$DATA_DIR"
 
-echo "📥 Descargando dataset..."
+echo "📥 Descargando dataset... "
 python3 -m pip install --quiet gdown
 
 gdown 'https://drive.google.com/uc?id=1Aa_hBeNA1-BtJhumzjbgvQRHpAvjk5Dh' \

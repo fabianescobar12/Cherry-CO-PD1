@@ -55,7 +55,7 @@ singularity/
 
 ## Instalación
 
-1. **Clonar el repositorio**
+1. **Clonar el repositorio de Github**
    ```bash
    git clone https://github.com/fabianescobar12/Cherry-CO-PD1.git
    cd Cherry-CO-PD1

@@ -18,7 +18,7 @@ CONTAINER="$ROOT_DIR/singularity/yolov11_container.sif"
 
 
 if [[ ! -f "$CONTAINER" ]]; then
-    echo "❌  No se encontró la imagen Singularity en: $CONTAINER" >&2
+    echo "❌ No se encontró la imagen Singularity en: $CONTAINER" >&2
     exit 1
 fi
 
