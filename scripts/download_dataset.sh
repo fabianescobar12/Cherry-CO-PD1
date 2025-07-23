@@ -8,7 +8,7 @@ mkdir -p "$DATA_DIR"
 echo "📥 Descargando dataset... "
 python3 -m pip install --quiet gdown
 
-gdown 'https://drive.google.com/uc?id=1Aa_hBeNA1-BtJhumzjbgvQRHpAvjk5Dh' \
+python3 -m gdown 'https://drive.google.com/uc?id=1Aa_hBeNA1-BtJhumzjbgvQRHpAvjk5Dh' \
       -O "$DATA_DIR/dataset_ripeness.zip"
 
 unzip -q "$DATA_DIR/dataset_ripeness.zip" -d "$DATA_DIR"
