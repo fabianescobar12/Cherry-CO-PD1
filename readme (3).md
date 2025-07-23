@@ -106,7 +106,7 @@ Esto creará la imagen `singularity/yolov11_container.sif` basada en `nvidia/cud
 
 Previo al entrenamiento modifique `configs/cherries_maturity.yaml`, en el apartado `path`, donde deberá ingresar la ruta correspondiente a la carpeta del dataset.
 
-Las ejecuciones sin utilizar slurm para la solicitud de recursos deben ejecutarse dentro del contenedor, como sigue:
+Las ejecuciones sin utilizar slurm para la solicitud de recursos deben ejecutarse dentro del contenedor y en un nodo con acceso a GPU (de lo contrario, si estamos en un nodo sin GPU podemos llamarlo mediante la ejecución con slurm, como se explica más adelante), como sigue:
 
 ### 1. Entrenamiento secuencial (sin slurm)
 
