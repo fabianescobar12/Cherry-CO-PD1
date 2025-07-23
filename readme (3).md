@@ -65,7 +65,7 @@ singularity/
 
 ## Requisitos para ejecutar scripts shell
 
-Previo a ejecutar los scripts, se debe hacer que un archivo shell (.sh) sea ejecutable, por ende, debemos ejecutar el la raíz del repositorio:
+Antes de ejecutar los scripts, es necesario otorgar permisos de ejecución al archivo shell (.sh). Para ello, se debe ejecutar los siguientes comandos desde la raíz del repositorio:
    - ```chmod +x scripts/download_dataset.sh```
    - ```chmod +x scripts/submit_slurm.sh```
    - ```chmod +x singularity/build_container.sh```
@@ -104,9 +104,11 @@ Esto creará la imagen `singularity/yolov11_container.sif` basada en `nvidia/cud
 
 ## Entrenamiento
 
-Todas las ejecuciones deben realizarse dentro del contenedor para asegurar el entorno correcto.
+Previo al entrenamiento modifique `configs/cherries_maturity.yaml`, en el apartado `path`, donde deberá ingresar la ruta correspondiente a la carpeta del dataset.
 
-### 1. Entrenamiento secuencial
+Las ejecuciones sin utilizar slurm para la solicitud de recursos deben ejecutarse dentro del contenedor, como sigue:
+
+### 1. Entrenamiento secuencial (sin slurm)
 
 Utiliza un solo GPU y recorre distintas combinaciones de tamaño de imagen y batch.
 
@@ -115,7 +117,7 @@ singularity exec --nv singularity/yolov11_container.sif \
     python3 scripts/train_secuencial.py
 ```
 
-### 2. Entrenamiento paralelo
+### 2. Entrenamiento paralelo (sin slurm)
 
 Aprovecha varios GPUs (DataParallel). Configure la variable `DEVICES` en `scripts/train_paralelizado.py` según los índices visibles.
 
@@ -127,7 +129,7 @@ CUDA_VISIBLE_DEVICES=0,1,2 \
 
 ---
 
-## Ejecución en clúster SLURM
+## Ejecución en clúster con SLURM
 
 1. **Ajuste** `scripts/submit_slurm.sh`:
    - `--nodelist`, `--cpus-per-task`, `--gres=gpu:X`, etc.
@@ -137,7 +139,7 @@ CUDA_VISIBLE_DEVICES=0,1,2 \
    sbatch scripts/submit_slurm.sh
    ```
 
-El script invoca al contenedor y ejecuta `train_secuencial.py` por defecto.
+El script invoca al contenedor y ejecuta `train_secuencial.py` o `train_paralelizado.py` según tus necesidades, logrando una buena práctica utilizando slurm para solicitar recursos al clúster.
 
 ---
 
@@ -149,8 +151,6 @@ El script invoca al contenedor y ejecuta `train_secuencial.py` por defecto.
 ---
 
 ## Personalización
-
-- **Dataset**: Modifique `configs/cherries_maturity.yaml` para apuntar a otra ruta de datos o cambiar las clases.
 - **Hiperparámetros**: Edite `img_sizes`, `batch_map` y `epochs` en los scripts de entrenamiento.
 - **SLURM**: Cambie los parámetros SBATCH según los recursos de su clúster.
 
@@ -160,5 +160,5 @@ El script invoca al contenedor y ejecuta `train_secuencial.py` por defecto.
 
 Desarrollado por Fabián Escobar y Camilo Aliste. Basado en **Ultralytics YOLOv11**.
 
-> Para comentarios o mejoras, abra un *issue* o envíe un *pull request*.
+
 
