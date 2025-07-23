@@ -9,15 +9,16 @@ Este repositorio **utiliza el conjunto de datos público Cherry CO Dataset** (
 1. [Estructura del repositorio](#estructura-del-repositorio)
 2. [Requisitos](#requisitos)
 3. [Instalación](#instalación)
-4. [Descarga del dataset](#descarga-del-dataset)
-5. [Construcción del contenedor](#construcción-del-contenedor)
-6. [Entrenamiento](#entrenamiento)
+4. [Requisitos para ejecutar scripts shell](#requisitos-para-ejecutar-scripts-shell)
+5. [Descarga del dataset](#descarga-del-dataset)
+6. [Construcción del contenedor](#construcción-del-contenedor)
+7. [Entrenamiento](#entrenamiento)
    - [Entrenamiento secuencial](#entrenamiento-secuencial)
    - [Entrenamiento paralelo](#entrenamiento-paralelo)
-7. [Ejecución en clúster SLURM](#ejecución-en-clúster-slurm)
-8. [Salida de resultados](#salida-de-resultados)
-9. [Personalización](#personalización)
-10. [Créditos](#créditos)
+8. [Ejecución en clúster SLURM](#ejecución-en-clúster-slurm)
+9. [Salida de resultados](#salida-de-resultados)
+10. [Personalización](#personalización)
+11. [Créditos](#créditos)
 
 ---
 
@@ -56,12 +57,18 @@ singularity/
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com/tu‑usuario/cherry-maturity-detection.git
-   cd cherry-maturity-detection
+   git clone https://github.com/fabianescobar12/Cherry-CO-PD1.git
+   cd Cherry-CO-PD1
    ```
-2. **(Opcional) Crear directorio de datos** Si desea almacenar los datos en otra ruta, cree la carpeta y ajuste el campo `path:` en `configs/cherries_maturity.yaml`.
 
 ---
+
+## Requisitos para ejecutar scripts shell
+
+Previo a ejecutar los scripts, se debe hacer que un archivo shell (.sh) sea ejecutable, por ende, debemos ejecutar el la raíz del repositorio:
+   - ```chmod +x scripts/download_dataset.sh```
+   - ```chmod +x scripts/submit_slurm.sh```
+   - ```chmod +x singularity/build_container.sh```
 
 ## Descarga del dataset
 
