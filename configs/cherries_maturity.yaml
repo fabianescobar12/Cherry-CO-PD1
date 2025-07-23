@@ -1,7 +1,10 @@
-path: /mnt/beegfs/home/fescobar/repo_test/test_/data
+# configs/cherries_maturity.yaml
+# Rutas *relativas* a este YAML  ➜  ../data  (= repo/data)
+path: ../data            # <─ ¡sin rutas absolutas!
 train: train/images
 val:   val/images
 test:  test/images
+
 names:
   0: cherry_ripe
   1: cherry_halfripe

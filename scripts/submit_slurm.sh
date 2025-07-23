@@ -1,20 +1,20 @@
-#!/bin/bash
-#SBATCH --job-name=test
-#SBATCH --cpus-per-task=1
+#!/usr/bin/env bash
+#SBATCH --job-name=cherry-yolo
+#SBATCH --cpus-per-task=4
 #SBATCH --mem=30G
-#SBATCH --error=error_train.err
-#SBATCH --output=output_train.out
-#SBATCH --nodelist=tokikura
 #SBATCH --gres=gpu:1
+#SBATCH --error=logs/train_%j.err
+#SBATCH --output=logs/train_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nombre.apellido@dominio.uoh.cl
+#SBATCH --partition=gpu            # Ejemplo, ajusta a tu clúster
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONTAINER="$ROOT_DIR/singularity/yolov11_container.sif"
 
-CONTAINER = singularity/yolov11_container.sif
+module load singularity/3.11.4      # si el clúster lo requiere
 
 singularity exec --nv \
-    $CONTAINER \
-    python3 train_secuencial.py
-
-
-
+    --bind "$ROOT_DIR":"$ROOT_DIR" \
+    "$CONTAINER" \
+    python3 "$ROOT_DIR/src/train_sequential.py"
