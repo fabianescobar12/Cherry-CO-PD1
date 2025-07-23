@@ -1,4 +1,4 @@
-#!/bin/bash, este es para el entrenamiento paralelizado
+#!/bin/bash
 #SBATCH --job-name=test
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=30G
