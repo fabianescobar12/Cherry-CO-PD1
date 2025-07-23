@@ -12,12 +12,12 @@ from ultralytics import YOLO
 REPO_DIR = Path(__file__).resolve().parents[1]
 CFG_FILE = REPO_DIR / "configs" / "cherries_maturity.yaml"
 SUMMARY_FILE = REPO_DIR / "training_summary.csv"
-MODEL_WEIGHTS = "yolov11s.pt"          # Peso público de Ultralytics
+MODEL_WEIGHTS = "yolo11s.pt"          # Peso público de Ultralytics
 
-IMG_SIZES = [1024, 640]
-BATCH_MAP = {
-    1024: [102, 69, 33, 18, 9],
-    640:  [102, 69, 33, 18, 9],
+img_sizes = [1024, 640]
+batch_map = {
+    1024: [102, 69, 33, 18,  9],
+    640 : [102, 69, 33, 18,  9]
 }
 
 def train_loop():

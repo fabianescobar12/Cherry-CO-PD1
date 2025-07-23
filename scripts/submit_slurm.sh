@@ -1,20 +1,31 @@
-#!/usr/bin/env bash
-#SBATCH --job-name=cherry-yolo
-#SBATCH --cpus-per-task=4
+#!/bin/bash, este es para el entrenamiento paralelizado
+#SBATCH --job-name=test
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=30G
-#SBATCH --gres=gpu:1
-#SBATCH --error=logs/train_%j.err
-#SBATCH --output=logs/train_%j.out
+#SBATCH --error=error_train.err
+#SBATCH --output=output_train.out
+#SBATCH --nodelist=v100
+#SBATCH --gres=gpu:3
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nombre.apellido@dominio.uoh.cl
-#SBATCH --partition=gpu            # Ejemplo, ajusta a tu clúster
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+set -euo pipefail
+
+cd "$SLURM_SUBMIT_DIR"
+
+ROOT_DIR="$SLURM_SUBMIT_DIR"
 CONTAINER="$ROOT_DIR/singularity/yolov11_container.sif"
 
-module load singularity/3.11.4      # si el clúster lo requiere
+
+if [[ ! -f "$CONTAINER" ]]; then
+    echo "❌  No se encontró la imagen Singularity en: $CONTAINER" >&2
+    exit 1
+fi
+
+
+
 
 singularity exec --nv \
     --bind "$ROOT_DIR":"$ROOT_DIR" \
     "$CONTAINER" \
-    python3 "$ROOT_DIR/src/train_sequential.py"
+    python3 "$ROOT_DIR/scripts/train_paralelizado.py"
